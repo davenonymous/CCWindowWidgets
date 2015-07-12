@@ -1,0 +1,52 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetButton")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetScrollPanel")
+shell.run("/DemoGUI/DemoPage")
+
+
+DemoPageScrollPanel = class(DemoPage, function(widget, parent)
+	widget.count = 0
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/button"	
+end)
+
+--Overridden
+function DemoPageScrollPanel:getDescription()
+	return "A panel with scrolling capabilities"
+end
+
+--Overridden
+function DemoPageScrollPanel:addExampleWidget()
+	local counter = WidgetText(self, 3, 16, 40, 1)
+	counter:setText("Clicked: -")
+	self:add(counter)
+
+	local spanel = WidgetScrollPanel(self, 3, 3, 30, 12)
+	spanel:setColors(colors.blue, colors.black)
+
+	for i=1,15 do
+		local tw = WidgetText(spanel.area, 1, i, 40, 1):setText("Line " .. i .. " ...... woohoo")
+		tw:on("click", function() 
+			counter:setText("Clicked: " .. tw:getText())
+			counter:draw()
+		end)
+		spanel.area:add(tw, true)
+		--tw:setColors(colors.blue, colors.orange)
+	end	
+
+	local bw = WidgetButton(spanel.area, 8, 17, 14, 3):setLabel("Button!"):setColors(colors.white, colors.green)
+	bw:on("click", function()
+		if(bw.label == "Button!") then
+			bw.label = 1
+		else
+			bw.label = bw.label + 1
+		end
+		bw:draw()
+
+		counter:setText("Clicked the button!")
+		counter:draw()
+	end)
+	spanel.area:add(bw, true)
+
+	self:add(spanel, true)
+end

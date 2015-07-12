@@ -1,0 +1,43 @@
+shell.run("/rom/apis/class")
+shell.run("/DemoGUI/DemoPage")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetText")
+
+DemoPageDDL = class(DemoPage, function(widget, parent)
+	widget.count = 0
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/ddl"	
+end)
+
+--Overridden
+function DemoPageDDL:getDescription()
+	return "Single-select drop down list"
+end
+
+--Overridden
+function DemoPageDDL:addExampleWidget()
+	local counter = WidgetText(self, 3, 5, 25, 1)
+	counter:setText("Selected: -")
+
+
+	local ddl = WidgetDDL(self, 3, 3, 20, 5)
+	ddl:setColors(colors.white, colors.black)
+	ddl:setChildColors(colors.white, colors.gray)
+
+	for i=1,10 do
+		ddl:addChoice("Choice " .. i, i*i)
+	end	
+
+	ddl:on("switching_mode", function(isSelecting)
+		if(isSelecting == false) then
+			self:draw()
+		end
+	end)
+
+	ddl:on("selection_changed", function(label, extraData)
+		counter:setText("Selected: " .. label .. " (" .. extraData .. ")")
+		self:draw()
+	end)	
+
+	self:add(ddl, true)
+	self:add(counter)	
+end

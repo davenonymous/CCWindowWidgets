@@ -1,0 +1,49 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widget")
+
+WidgetText = class(Widget, function(widget, parent, x, y, w, h)
+	Widget.init(widget, parent, x, y, w, h)
+
+	widget.id = "text"	
+	widget.margin = 1
+	widget.label = ""
+	widget.lines = {}
+	widget.textWidth = 0
+end)
+
+function WidgetText:setText(label)
+	self.label = label;
+	self.lines = self:splitLines(label)
+
+	self.textWidth = 0
+	for i,v in ipairs(self.lines) do
+		local l = string.len(self.lines[i])
+		if(l > self.textWidth) then
+			self.textWidth = l
+		end
+	end
+
+	return self
+end
+
+function WidgetText:adaptSize()
+	self:setSize(self.textWidth, #self.lines)
+end
+
+function WidgetText:splitLines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
+
+function WidgetText:getText()
+	return self.label
+end
+
+function WidgetText:customDraw()
+	for i,v in ipairs(self.lines) do
+		self.term.setCursorPos(self.margin, self.margin+(i-1))
+		self.term.write(self.lines[i]);
+	end
+end

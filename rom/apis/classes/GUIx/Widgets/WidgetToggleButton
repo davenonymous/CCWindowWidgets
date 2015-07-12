@@ -1,0 +1,56 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widget")
+
+WidgetToggleButton = class(WidgetButton, function(widget, parent, x, y, w, h)
+	WidgetButton.init(widget, parent, x, y, w, h)
+
+	widget.states = {}
+	widget.stateFgColors = {}
+	widget.stateBgColors = {}
+
+	widget.currentState = 1
+
+	widget.id = "togglebutton"
+	widget:on("click", function()
+		widget.currentState = widget.currentState + 1
+		if(widget.currentState > #widget.states) then
+			widget.currentState = 1
+		end
+		widget:setLabel(widget.states[widget.currentState])
+
+		widget:fire("change_state", widget.states[widget.currentState], widget.currentState)
+		widget:draw()
+	end)
+end)
+
+function WidgetToggleButton:setStates(states, _skipEvent)
+	self.states = states
+	self.currentState = 1
+	self:setLabel(states[1])
+
+	if(_skipEvent ~= nil and _skipEvent ~= false) then
+		return
+	end
+
+	self:fire("change_state", states[1], 1)
+end
+
+function WidgetToggleButton:setStateColor(state, colorFg, colorBg)
+	self.stateFgColors[state] = colorFg
+	self.stateBgColors[state] = colorBg
+end
+
+function WidgetToggleButton:customDraw()
+	if(self.stateFgColors[self.states[self.currentState]] ~= nil) then
+		self.term.setBackgroundColor(self.stateBgColors[self.states[self.currentState]])
+		self.term.setTextColor(self.stateFgColors[self.states[self.currentState]])
+	end
+
+	self.term.clear()
+
+	local marginLeft = math.floor((self.w - string.len(self.label)) / 2)
+	local marginTop = math.floor( (self.h - 1) / 2)
+
+	self.term.setCursorPos(marginLeft+1, marginTop+1)
+	self.term.write(self.label);
+end

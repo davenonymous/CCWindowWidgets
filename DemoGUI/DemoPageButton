@@ -1,0 +1,32 @@
+shell.run("/rom/apis/class")
+shell.run("/DemoGUI/DemoPage")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetButton")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetText")
+
+DemoPageButton = class(DemoPage, function(widget, parent)
+	widget.count = 0
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/button"	
+end)
+
+--Overridden
+function DemoPageButton:getDescription()
+	return "A simple button firing an event on click"
+end
+
+--Overridden
+function DemoPageButton:addExampleWidget()
+	local counter = WidgetText(self, 14, 4, 10, 1)
+	counter:setText("Count: " .. self.count)
+	self:add(counter)
+
+	local widget = WidgetButton(self, 3, 3, 9, 3)
+	widget:setColors(colors.white,colors.green)
+	widget:setLabel("Hit me!")
+	widget:on("click", function()
+		self.count = self.count + 1
+		counter:setText("Count: " .. self.count)
+		counter:draw()
+	end)
+	self:add(widget, true)
+end

@@ -1,0 +1,91 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetToggleButton")
+shell.run("/DemoGUI/DemoPage")
+
+DemoPageToggleButton = class(DemoPage, function(widget, parent)
+	widget.countOn = 0
+	widget.countOff = 0
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/togglebutton"	
+end)
+
+--Overridden
+function DemoPageToggleButton:getDescription()
+	return "A toggle button cycling through multiple states"
+end
+
+--Overridden
+function DemoPageToggleButton:addExampleWidget()
+	local displayStateId = WidgetText(self, 18, 4, 20, 1)
+	self:add(displayStateId)
+
+	local widgetOnOff = WidgetToggleButton(self, 3, 3, 12, 3)
+	widgetOnOff:setColors(colors.white,colors.green)
+	widgetOnOff:on("change_state", function(label, id)
+		displayStateId:setText("ID: " .. id .. ", Label: " .. label)
+		displayStateId:draw()
+	end)		
+	widgetOnOff:setStates({
+		"On",
+		"Off"
+	})
+	widgetOnOff:setStateColor("Off", colors.white, colors.red)
+
+	self:add(widgetOnOff, true)
+
+
+	local displayColor = WidgetText(self, 18, 10, 30, 1)
+	self:add(displayColor)
+
+	local widgetColors = WidgetToggleButton(self, 3, 9, 12, 3)
+	widgetColors:setColors(colors.white,colors.green)
+	widgetColors:on("change_state", function(label, id)
+		displayColor:setText("ID: " .. id .. ", Label: " .. label)
+		displayColor:draw()
+	end)		
+	widgetColors:setStates({
+		"White",
+		"Orange",
+		"Magenta",
+		"Light Blue",
+		"Yellow",
+		"Lime",
+		"Pink",
+		"Gray",
+		"Light Gray",
+		"Cyan",
+		"Purple",
+		"Blue",
+		"Brown",
+		"Green",
+		"Red",
+		"Black"
+	})
+	widgetColors:setStateColor("White", colors.black, colors.white)
+	widgetColors:setStateColor("Orange", colors.black, colors.orange)
+	widgetColors:setStateColor("Magenta", colors.white, colors.magenta)
+
+	widgetColors:setStateColor("Light Blue", colors.black, colors.lightBlue)
+	widgetColors:setStateColor("Yellow", colors.black, colors.yellow)
+	widgetColors:setStateColor("Lime", colors.black, colors.lime)
+
+	widgetColors:setStateColor("Pink", colors.black, colors.pink)
+	widgetColors:setStateColor("Gray", colors.black, colors.gray)
+	widgetColors:setStateColor("Light Gray", colors.black, colors.lightGray)
+
+	widgetColors:setStateColor("Cyan", colors.black, colors.cyan)
+	widgetColors:setStateColor("Purple", colors.white, colors.purple)
+	widgetColors:setStateColor("Blue", colors.white, colors.blue)
+
+	widgetColors:setStateColor("Brown", colors.white, colors.brown)
+	widgetColors:setStateColor("Green", colors.white, colors.green)
+	widgetColors:setStateColor("Red", colors.white, colors.red)
+	widgetColors:setStateColor("Black", colors.white, colors.black)
+
+	self:add(widgetColors, true)
+
+
+
+
+
+end

@@ -1,0 +1,21 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widget")
+
+WidgetButton = class(Widget, function(widget, x, y, w, h, _parent)
+	Widget.init(widget, x, y, w, h, _parent)
+
+	widget.id = "button"
+end)
+
+function WidgetButton:setLabel(label)
+	self.label = label;
+	return self
+end
+
+function WidgetButton:customDraw()
+	local marginLeft = math.floor((self.w - string.len(self.label)) / 2)
+	local marginTop = math.floor( (self.h - 1) / 2)
+
+	self.term.setCursorPos(marginLeft+1, marginTop+1)
+	self.term.write(self.label);
+end

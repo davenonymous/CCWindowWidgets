@@ -1,0 +1,141 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetScrollPanel")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetButton")
+
+WidgetList = class(WidgetScrollPanel, function(widget, parent, x, y, w, h, side)
+	WidgetScrollPanel.init(widget, parent, x, y, w, h, side)
+
+	widget.id = "list"
+
+	widget.selectable = 0;
+	widget.selected = {};
+
+	widget.selectedBg = widget.bg;
+	widget.selectedFg = widget.fg;
+
+	widget.list = {}
+end)
+
+function WidgetList:setSize(w, h)
+	self:setPositionAndSize(self.x, self.y, w, h)
+	self.down_button:setPosition(w, h)
+end
+
+function WidgetList:setSelectedColors(front, back)
+	self.selectedBg = back
+	self.selectedFg = front
+
+	return self
+end
+
+function WidgetList:clear(_skipDraw)
+	local skipDraw = _skipDraw or false
+	self.list = {}
+	self.area:clear()
+	self.selected = {}
+	self.offsetY = 0
+	if(skipDraw == false) then self:draw() end
+
+	return self
+end
+
+function WidgetList:getTextWidgetForEntry(entry)
+	for i,widget in ipairs(self.area.elements) do
+		if(widget.extraData == entry) then
+			return widget
+		end
+	end
+
+	return nil
+end
+
+function WidgetList:setSelectable(num)
+	self.selectable = num
+end
+
+function WidgetList:isSelected(entry)
+	for i,widget in ipairs(self.selected) do
+		if(widget.extraData == entry) then
+			return true
+		end
+	end
+
+	return false
+end
+
+function WidgetList:unselect(entry)
+	for i,widget in ipairs(self.selected) do
+		if(widget.extraData == entry) then
+			table.remove(self.selected, i)
+			widget:setColors(self.area.fg, self.area.bg)
+			widget:draw()
+			self:fire("selection_changed", self:getSelectedEntries())
+			return
+		end
+	end
+end
+
+function WidgetList:setSelected(entry)
+	if(self.selectable < 1) then
+		return
+	end
+
+	local widget = self:getTextWidgetForEntry(entry)
+	if(widget == nil) then
+		return
+	end	
+	while(#self.selected >= self.selectable) do
+		local old = table.remove(self.selected, 1)
+		old:setColors(self.area.fg, self.area.bg)
+		old:draw()
+	end
+	table.insert(self.selected, widget)
+
+	widget:setColors(self.selectedFg, self.selectedBg)
+	widget:draw()
+
+	self:fire("selection_changed", self:getSelectedEntries())
+end
+
+function WidgetList:getSelectedEntries()
+	if(#self.selected == 0) then
+		return {}
+	end
+
+	local result = {}
+	for i,widget in ipairs(self.selected) do
+		table.insert(result, {id=widget.extraData, text=widget:getText()})
+	end
+
+	return result
+end
+
+function WidgetList:addEntry(entry, _skipDraw)
+	local skipDraw = _skipDraw or false
+	table.insert(self.list, entry)
+
+	local entryWidth = string.len(entry)
+	if(entryWidth < self.w) then
+		entryWidth = self.area.w
+	end
+
+	local tw = WidgetText(self.area, 1, #self.list, entryWidth, 1):setText(entry)
+	tw:on("click", function()
+		if(self.visible == false) then
+			return
+		end
+		self:fire("entry_click", tw:getText(), tw.extraData)
+
+		if(self:isSelected(tw.extraData)) then
+			self:unselect(tw.extraData)
+		else
+			self:setSelected(tw.extraData)
+		end
+	end)
+	tw.extraData = #self.list
+	self.area:add(tw)
+
+	if(skipDraw == false) then self:draw() end
+
+	return self
+end

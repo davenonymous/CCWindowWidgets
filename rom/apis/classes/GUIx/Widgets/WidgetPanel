@@ -1,0 +1,135 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widget")
+
+WidgetPanel = class(Widget, function(widget, parent, x, y, w, h)
+	Widget.init(widget, parent, x, y, w, h)
+
+	widget.id = "panel"
+
+	widget.side = parent.side;
+	widget.elements = {}
+end)
+
+function WidgetPanel:clear()
+	self.elements = {}
+	return self
+end
+
+function WidgetPanel:add(element, _skipColorCopy)
+	if(element == nil) then
+		error("WidgetPanel:add expects another widget as parameter")
+	end
+	element.parent = self.term
+	element.side = self.side
+	element.id = self.id .. "/" .. element.id
+	if(_skipColorCopy == nil or _skipColorCopy == false) then
+		element.fg = self.fg
+		element.bg = self.bg
+	end
+	table.insert(self.elements, element)
+	self:fire("added_element", element)
+	return self
+end
+
+function WidgetPanel:customDraw()
+	for i,element in ipairs(self.elements) do
+		element:draw()
+	end
+end
+
+function WidgetPanel:getInnerSize()
+	local minY = 0
+	local minX = 0
+	local maxY = 0
+	local maxX = 0
+
+	for i,element in ipairs(self.elements) do
+		if(element.x < minX) then
+			minX = element.x
+		end
+		if(element.x + element.w > maxX) then
+			maxX = element.x + element.w
+		end
+
+		if(element.y < minY) then
+			minY = element.y
+		end
+		if(element.y + element.h > maxY) then
+			maxY = element.y + element.h
+		end		
+	end
+
+	local innerWidth = maxX - minX
+	local innerHeight = maxY - minY
+
+	return innerWidth, innerHeight
+end
+
+function WidgetPanel:copyTable(obj, seen)
+	if type(obj) ~= 'table' then return obj end
+	if seen and seen[obj] then return seen[obj] end
+	local s = seen or {}
+	local res = setmetatable({}, getmetatable(obj))
+	s[obj] = res
+	for k, v in pairs(obj) do res[self:copyTable(k, s)] = self:copyTable(v, s) end
+	return res
+end
+
+function WidgetPanel:handleEvent(...)
+	local event = {...}
+
+	local visMap = {}
+	for i,element in ipairs(self.elements) do
+		visMap[i] = element.visible
+	end
+
+	if( (self.side == "screen" and event[1] == "mouse_click") or (self.side == event[2] and event[1] == "monitor_touch") ) then
+		local x_click = event[3]+1;
+		local y_click = event[4]+1;
+		--print("--")
+		local bestElement = nil
+		local bFoundElement = false;
+		for i,element in ipairs(self.elements) do
+			local x_min = element.x;
+			local y_min = element.y;
+			local x_max = element.x + element.w;
+			local y_max = element.y + element.h;
+
+			if(x_click > x_min and x_click <= x_max and y_click > y_min and y_click <= y_max and visMap[i] == true) then
+				--print("Firing on element with last draw: " .. element.lastDraw)
+				if(bestElement == nil or element.lastDraw > bestElement.lastDraw) then
+					bestElement = element;
+				end
+				bFoundElement = true;
+			end
+		end
+
+		if(bestElement ~= nil) then
+			local x_min = bestElement.x;
+			local y_min = bestElement.y;
+			local x_max = bestElement.x + bestElement.w;
+			local y_max = bestElement.y + bestElement.h;
+
+			if(bestElement.handleEvent ~= nil) then								
+				local delegatedEvent = self:copyTable(event);
+				delegatedEvent[3] = x_click - x_min
+				delegatedEvent[4] = y_click - y_min
+
+				bestElement:handleEvent(unpack(delegatedEvent))
+			else
+				bestElement:fire("click", x_click - x_min, y_click - y_min)
+			end
+		else
+			self:fire("click", x_click-1, y_click-1)
+		end
+	else
+		-- Not a click event, pass it along to all elements
+		local eventCopy = self:copyTable(event)
+		local eventName = table.remove(eventCopy, 1)
+		for i,element in ipairs(self.elements) do
+			element:fire(eventName, unpack(eventCopy))
+		end
+	end
+
+	return unpack(event);
+end

@@ -1,0 +1,121 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetText")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetPanel")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetList")
+
+WidgetDDL = class(WidgetPanel, function(widget, parent, x, y, w, h)
+	WidgetPanel.init(widget, parent, x, y, w, h)
+
+	widget.id = "ddl"
+	widget.choices = {}
+	widget.isSelecting = false
+	widget.selected = nil
+	widget.maxHeight = h
+
+	widget.display = WidgetText(widget, 1, 1, w, 1)
+	widget.display:setText("-")
+	widget.display:on("click", function(x,y)
+		widget:switchMode()
+	end)
+
+	widget:add(widget.display)
+
+	widget.list = WidgetList(widget, 1, 1, w, h)
+	widget.list:setVisible(false)
+	widget.list:on("entry_click", function(choice)		
+		widget:switchMode()
+		widget:setSelected(choice)
+	end)
+	widget:add(widget.list)
+end)
+
+function WidgetDDL:setChildColors(fg, bg)
+	self.display:setColors(fg, bg)
+	self.list:setColors(fg, bg)
+end
+
+function WidgetDDL:setSelected(label)
+	if(self.display:getText() == label) then
+		return
+	end
+
+	if(label == nil or label == "") then
+		return
+	end
+
+	if(self.choices[label] == nil) then
+		error("Choice '" .. label .. "' does not exist!")
+		return
+	end
+
+	self.selected = label
+	self.display:setText(label)
+	self:draw()
+
+	self:fire("selection_changed", label, self.choices[label])
+end
+
+function WidgetDDL:getSelected()
+	if(self.selected ~= nil) then
+		return self.selected, self.choices[self.selected]
+	end
+
+	return self.selected
+end
+
+function WidgetDDL:getChoices()
+	local result = {}
+	for choice,extraData in pairs(self.choices) do
+		table.insert(result, {choice=choice, data=extraData})
+	end
+	return result
+end
+
+function WidgetDDL:addChoice(label, extraData)
+	self.choices[label] = extraData or true	
+	self.list:addEntry(label, true)
+
+	local choices = self:getChoices()
+
+	if(#choices == 1) then
+		self:setSelected(label)
+	end	
+
+	self:adaptSize()
+end
+
+function WidgetDDL:adaptSize()
+	local choices = self:getChoices()
+
+	if(#choices < self.h) then
+		self.list:setSize(self.w, #choices)
+		self:setSize(self.w, #choices)
+	else
+		self.list:setSize(self.w, self.maxHeight)
+		self:setSize(self.w, self.maxHeight)
+	end
+end
+
+function WidgetDDL:switchMode(_skipRedraw)		
+
+	if(self.isSelecting) then
+		self.list:setVisible(false)
+		self.display:setVisible(true)
+	else		
+		self.display:setVisible(false)
+		self.list:setVisible(true)
+	end
+
+	self.isSelecting = not self.isSelecting	
+
+	if(_skipRedraw ~= true) then
+		self:draw()
+	end
+
+	self:fire("switching_mode", self.isSelecting)
+end
+
+function WidgetDDL:customDraw()
+	self.display:draw()
+	self.list:draw()
+end

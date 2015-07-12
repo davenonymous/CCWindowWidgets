@@ -1,0 +1,21 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetText")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetPanel")
+
+DemoPage = class(WidgetPanel, function(widget, parent)
+	WidgetPanel.init(widget, parent, 1, 1, parent.w, parent.h)
+	widget.id = "demopage"
+
+	widget.description = WidgetText(widget, 1, 1, widget.w, 1)
+	widget.description:setText(widget:getDescription())
+	widget:add(widget.description)
+
+	widget:addExampleWidget()
+end)
+
+function DemoPage:getDescription()
+	return "No description specified"
+end
+
+function DemoPage:addExampleWidget()
+end

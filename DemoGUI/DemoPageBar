@@ -1,0 +1,69 @@
+shell.run("/rom/apis/class")
+shell.run("/DemoGUI/DemoPage")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetText")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetBar")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetButton")
+
+DemoPageBar = class(DemoPage, function(widget, parent)
+	widget.level = 5
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/bar"
+
+	widget.hBar = WidgetBar(widget, 5, 3, 30, 3)
+	widget.hBar:setRange(0, 10)
+	widget.hBar:setColors(colors.green,colors.lightGray)
+	widget.hBar:setLevel(widget.level)
+
+	widget.vBar = WidgetBar(widget, 3, 3, 1, 10)
+	widget.vBar:setOrientation("vertical")
+	widget.vBar:setRange(0, 10)
+	widget.vBar:setColors(colors.red,colors.lightBlue)
+	widget.vBar:setLevel(widget.level)
+
+	widget.levelDisplay = WidgetText(widget, 7, 8, 10, 1)
+	widget.levelDisplay:setText("Level: " .. widget.level)
+
+	widget:add(widget.levelDisplay)
+	widget:add(widget.hBar, true)
+	widget:add(widget.vBar, true)
+
+	local buttonPlus = WidgetButton(widget, 5, 8, 1, 1)
+	buttonPlus:setColors(colors.white,colors.green)
+	buttonPlus:setLabel("+")
+	buttonPlus:on("click", function()		
+		widget:updateLevel(1)
+	end)
+	widget:add(buttonPlus, true)
+
+	local buttonMinus = WidgetButton(widget, 17, 8, 1, 1)
+	buttonMinus:setColors(colors.white,colors.red)
+	buttonMinus:setLabel("-")
+	buttonMinus:on("click", function()
+		widget:updateLevel(-1)
+	end)
+	widget:add(buttonMinus, true)		
+end)
+
+--Overridden
+function DemoPageBar:getDescription()
+	return "A two segment bar able to show progress etc"
+end
+
+function DemoPageBar:updateLevel(amount)
+	self.level = self.level + amount
+	if(self.level > 10) then
+		self.level = 10
+	end
+	self.levelDisplay:setText("Level: " .. self.level)		
+	self.levelDisplay:draw()
+
+	self.vBar:setLevel(self.level)
+	self.hBar:setLevel(self.level)
+
+	self.vBar:draw()
+	self.hBar:draw()
+end
+
+--Overridden
+function DemoPage:addExampleWidget()
+end

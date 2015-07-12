@@ -1,0 +1,70 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetPanel")
+
+WidgetScrollBar = class(WidgetPanel, function(widget, parent, x, y, w, h)
+	WidgetPanel.init(widget, parent, x, y, w, h)
+
+	widget.id = "scrollbar"
+	widget.level = 0
+	widget.steps = 0
+
+	widget.marker = Widget(widget, 1, 1, 1, 1)
+	widget.marker:setColors(widget.fg, widget.fg)
+
+	widget:add(widget.marker)
+end)
+
+-- Overridden
+function WidgetScrollBar:setColors(fg, bg)
+	self.bg = bg
+	self.fg = fg
+	self.marker:setColors(fg, fg)
+	return self
+end
+
+function WidgetScrollBar:adaptStepWidth()
+	local stepHeight = self.h / self.steps
+
+	if(stepHeight < 1 or self.steps == 0) then
+		stepHeight = 1
+	end
+
+	self.marker:setSize(stepHeight, 1)
+end
+
+function WidgetScrollBar:setScrollSteps(stepCount)
+	--print("Setting scroll steps: " .. stepCount)
+	self.steps = stepCount
+	self:adaptStepWidth()
+	--self:draw()
+	return self
+end
+
+function WidgetScrollBar:setLevel(level)
+	if(self.level == level) then
+		return
+	end
+
+	self.level = level
+
+	-- calculate position on block
+	--print("Dividing " .. level .. " / " .. self.max)
+	self.term.clear()
+
+	local space = self.h
+	local ratio = level / self.steps
+	local y = math.ceil(ratio * space)
+	if(y < 1) then
+		y = 1
+	end
+	--print("steps=" .. self.steps .. ",level=" .. level .. ", r=" .. ratio * space .. ", y=" .. y)
+	self.marker:setPosition(1, y)
+
+	self:draw()
+	self.marker:draw()
+	return self
+end
+
+function WidgetScrollBar:customDraw()
+	self.marker:draw()
+end

@@ -1,0 +1,49 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetPanel")
+
+Gui = class(WidgetPanel, function(gui, parent, side)
+	local tmpTerm = parent or term.current()
+
+	local w, h = tmpTerm.getSize();	
+
+	if(side == nil) then
+		side = "screen"
+	end
+
+	WidgetPanel.init(gui, tmpTerm, 1, 1, w, h)
+	gui.side = side
+	gui.id = "gui"
+end)
+
+function Gui:redraw()
+	self.term.setBackgroundColor(self.bg)
+	self.term.setTextColor(self.fg)
+	self.term.clear()
+	self:draw()
+end
+
+function Gui:auto(_useScreen)
+	local gui;
+	local useScreen = true
+	if(_useScreen ~= nil) then
+		useScreen = _useScreen
+	end
+
+	if(useScreen) then		
+		for i,side in ipairs(peripheral.getNames()) do
+			if(peripheral.getType(side) == "monitor" and peripheral.call(side, "isColor")) then
+				local screen = peripheral.wrap(side)
+				screen.setTextScale(1.0)
+				screen.clear()
+
+				gui = Gui(screen, side)
+			end	
+		end
+	end
+
+	if(gui == nil) then
+		gui = Gui()
+	end	
+
+	return gui
+end

@@ -1,0 +1,104 @@
+shell.run("/rom/apis/class")
+
+Widget = class(function(widget, parent, x, y, w, h)
+	widget.x = x;
+	widget.y = y;
+	widget.w = w;
+	widget.h = h;
+	widget.id = "widget"
+	widget.visible = true;
+	widget.lastDraw = 0
+
+	widget.bg = colors.black
+	widget.fg = colors.white
+
+	widget.parent = parent;
+
+	widget.events = {}
+
+	if(parent.write ~= nil) then
+		widget.term = window.create(parent, x, y, w, h, true)
+	else
+		widget.term = window.create(parent.term, x, y, w, h, true)
+	end
+end)
+
+function Widget:setPositionAndSize(x, y, w, h)
+	self.x = x
+	self.y = y
+	self.w = w
+	self.h = h
+	self.term.reposition(x, y, w, h)
+	self.term.clear()
+
+	--self:draw()
+	return self
+end
+
+function Widget:setPosition(x, y)
+	self:setPositionAndSize(x, y, self.w, self. h)
+	return self
+end
+
+function Widget:setSize(w, h)
+	self:setPositionAndSize(self.x, self.y, w, h)
+	return self
+end
+
+function Widget:setVisible(state)
+	self.visible = state;
+	self.term:setVisible(state)
+	return self
+end
+
+function Widget:setColors(front, back)
+	self.bg = back;
+	self.fg = front;
+	return self
+end
+
+function Widget:resetColors()
+	self.term.setBackgroundColor(self.bg)
+	self.term.setTextColor(self.fg)
+	return self
+end
+
+function Widget:customDraw()
+end
+
+function Widget:draw()
+	if(self.visible == false) then
+		return false
+	end
+
+	if(self.x + self.w < 0) then
+		return false
+	end
+
+	if(self.y + self.h < 0) then
+		return false
+	end	
+
+	self.lastDraw = os.clock()
+
+	self:resetColors()
+	self.term.clear()
+
+	self:customDraw()
+
+	self:fire("draw")
+
+	return true
+end
+
+function Widget:on(event, func)
+	self.events[event] = func;
+	return self
+end
+
+function Widget:fire(event, ...)
+	if(self.events[event] ~= nil and self.visible) then
+		return self.events[event](unpack({...}))
+	end
+	return self
+end

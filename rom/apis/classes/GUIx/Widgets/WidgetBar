@@ -1,0 +1,72 @@
+shell.run("/rom/apis/class")
+shell.run("/rom/apis/classes/GUIx/Widget")
+shell.run("/rom/apis/classes/GUIx/Widgets/WidgetPanel")
+
+WidgetBar = class(WidgetPanel, function(widget, x, y, w, h, _parent)
+	WidgetPanel.init(widget, x, y, w, h, _parent)
+
+	widget.id = "bar"
+	widget.level = 0
+	widget:setOrientation("horizontal")
+	widget:setRange(0, 1)
+
+	widget.high = Widget(widget, 1, 1, w, h)
+	widget.high:setColors(widget.fg, widget.fg)
+
+	widget:add(widget.high)
+end)
+
+-- Overridden
+function WidgetBar:setColors(fg, bg)
+	self.bg = bg
+	self.fg = fg
+	self.high:setColors(fg, fg)
+	return self
+end
+
+function WidgetBar:setOrientation(orientation)
+	if(orientation ~= "horizontal" and orientation ~= "vertical") then
+		error("Only 'horizontal' and 'vertical' are valid orientations")
+	end
+	self.orientation = orientation
+	return self
+end
+
+function WidgetBar:setRange(min, max)
+	if(max >= min) then
+		self.min = min
+		self.max = max
+	else
+		error("'min' must be less than or equal to 'max'")
+	end
+	return self
+end
+
+function WidgetBar:setLevel(level)
+	self.level = level	
+	return self
+end
+
+function WidgetBar:customDraw()
+	if(self.level > self.min) then
+		local fullWidth = self.max - self.min
+		local stepsTaken = self.level - self.min
+
+		if(self.orientation == "horizontal") then
+			local stepSize = self.w / fullWidth
+			local barWidth = stepsTaken * stepSize			
+			self.high:setSize(barWidth, self.high.h)
+		elseif(self.orientation == "vertical") then
+			local stepSize = self.h / fullWidth
+			local barHeight = stepsTaken * stepSize
+			self.high:setSize(self.high.w, barHeight)
+		else
+			return
+		end
+
+		self.term.clear()
+		self.high:draw()
+	end
+
+
+end

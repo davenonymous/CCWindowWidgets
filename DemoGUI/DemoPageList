@@ -1,0 +1,49 @@
+shell.run("/rom/apis/class")
+shell.run("/DemoGUI/DemoPage")
+
+DemoPageList = class(DemoPage, function(widget, parent)
+	widget.count = 0
+	DemoPage.init(widget, parent)
+	widget.id = widget.id .. "/list"	
+end)
+
+--Overridden
+function DemoPageList:getDescription()
+	return "A list with optional selection modes"
+end
+
+--Overridden
+function DemoPageList:addExampleWidget()
+	local lastClick = WidgetText(self, 24, 4, 20, 1)
+	lastClick:setText("Last click: -")
+	self:add(lastClick)
+
+	local selected = WidgetText(self, 24, 6, 20, 4)
+	selected:setText("Selected:")
+	self:add(selected)
+
+
+	local widget = WidgetList(self, 3, 3, 20, 10)
+	widget:setSelectable(3)
+	widget:setColors(colors.white,colors.gray)
+	widget:setSelectedColors(colors.white,colors.blue)
+	widget:on("entry_click", function(label, id)
+		lastClick:setText("Last click: " .. label)
+		lastClick:draw()
+	end)
+	widget:on("selection_changed", function(selectedEntries)
+		local text = "Selected:\n"
+		for i,entry in ipairs(selectedEntries) do
+			text = text .. entry.text .. "\n"
+		end
+		selected:setText(text)
+		selected:draw()
+	end)
+
+
+	for i=1,15 do
+		widget:addEntry("Entry " .. i)
+	end
+
+	self:add(widget)
+end
